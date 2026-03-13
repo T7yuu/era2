@@ -1,0 +1,50 @@
+
+
+data_paths:
+  input_image_dir: "E:/Datasets/MSD/Task09_Spleen/imagesTr"
+  output_mask_dir: "E:/PythonD/ERA/scripts/V9/outputs/msd/predicted_masks"
+  ground_truth_mask_dir: "E:/Datasets/MSD/Task09_Spleen/labelsTr"
+
+  metrics_output_file: "E:/PythonD/ERA/scripts/V9/outputs/msd/metrics_3d.txt"
+  output_dir: "E:/PythonD/ERA/scripts/V9/outputs/msd"
+  log_file: "E:/PythonD/ERA/scripts/V9/outputs/logs/main_process.log"
+
+  knowledge_base_json: "E:/PythonD/ERA/scripts/V9/scripts/unified_medical_kb.json"
+  feature_matrix_path: "E:/PythonD/ERA/scripts/V9/scripts/outputs_medical/medical_features.npz"
+
+evaluation_configs:
+  enable_visualization: false
+  visualization_sample_ratio: 0.01
+  results_filename: "results_medical_3d_evaluation.json"
+
+model_configs:
+  encoder: "blip_feature_extractor"
+  encoder_model_type: "base"
+  reasoning_engine:
+    model_path: "E:/PythonD/ERA/Qwen/Qwen2.5-VL-7B-Instruct"
+    use_int8: True
+    use_flash_attention_2: false
+    # === 新增：三支决策核心阈值 ===
+    alpha: 0.7  # 置信度高于 0.7 判定为 Accept
+    beta: 0.3   # 置信度低于 0.3 判定为 Reject，中间部分为 Defer
+  sam2:
+    root_dir: "E:/PythonD/ERA/sam2_weights"
+    checkpoint: "E:/PythonD/ERA/sam2_weights/sam2.1_hiera_base_plus.pt"
+    model_cfg: "E:/PythonD/ERA/sam2_weights/config.yaml"
+
+faiss_configs:
+  feature_dim: 256
+
+retrieval_configs:
+  image_text_weight: 0.85
+  size_similarity_weight: 0.1
+  top_k: 6
+
+logic_thresholds:
+  tier1_direct_mapping_similarity: 0.95
+  tier2_fallback_similarity: 0.85
+  box_expansion_ratio: 1.0
+
+  # === 新增：边界域（Defer）的处理策略 ===
+  defer_strategy: "conservative"
+  boundary_expansion: 1.05  # 针对不确定的区域，可以将框轻微放大 5%
